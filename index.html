@@ -188,7 +188,7 @@
                                 Buku Tamu &amp; Registrasi Peserta
                             </p>
                             <h1 id="displayEventTitle" class="text-xl sm:text-3xl font-extrabold tracking-tight text-white leading-snug">
-                                Seminar &amp; Workshop Solusi Instrumen Analitik Laboratorium
+                                Southeast Asia Section 5th Annual Conference
                             </h1>
                         </div>
 
@@ -197,16 +197,16 @@
                             <div class="flex items-start sm:items-center gap-2.5 bg-white/10 backdrop-blur-xs px-3.5 py-2 rounded-xl border border-white/10">
                                 <i class="fa-solid fa-location-dot text-rose-400 text-base mt-0.5 sm:mt-0"></i>
                                 <div>
-                                    <span class="block text-[10px] uppercase tracking-wider text-slate-300 font-medium">Venue / Lokasi</span>
-                                    <span id="displayEventVenue" class="font-semibold text-white">Grand Ballroom Hotel Mulia Senayan, Jakarta</span>
+                                    <span class="block text-[10px] uppercase tracking-wider text-slate-300 font-medium">Location / Venue</span>
+                                    <span id="displayEventVenue" class="font-semibold text-white">Hotel Borobudur Jakarta, Jakarta, Indonesia</span>
                                 </div>
                             </div>
 
                             <div class="flex items-start sm:items-center gap-2.5 bg-white/10 backdrop-blur-xs px-3.5 py-2 rounded-xl border border-white/10">
                                 <i class="fa-regular fa-calendar-days text-sky-400 text-base mt-0.5 sm:mt-0"></i>
                                 <div>
-                                    <span class="block text-[10px] uppercase tracking-wider text-slate-300 font-medium">Tanggal Pelaksanaan</span>
-                                    <span id="displayEventDate" class="font-semibold text-white">Jumat, 16 Oktober 2026</span>
+                                    <span class="block text-[10px] uppercase tracking-wider text-slate-300 font-medium">Date</span>
+                                    <span id="displayEventDate" class="font-semibold text-white">October 20-21, 2026</span>
                                 </div>
                             </div>
                         </div>
@@ -428,53 +428,21 @@
     <script>
         /**
          * ============================================================================
-         * 1. KONFIGURASI FINAL DEPLOY (UBAH DI SINI SEBELUM UPLOAD KE HOSTING)
+         * 1. KONFIGURASI INTEGRASI SPREADSHEET (TEMPEL URL WEB APP DI SINI)
          * ============================================================================
+         * Setelah Anda Deploy kode di file "Code.gs" pada Google Spreadsheet,
+         * salin URL Web App (berakhiran /exec) dan tempelkan pada GOOGLE_SCRIPT_URL di bawah:
          */
         const CONFIG = {
-            // Tempel URL Web App Google Apps Script Anda di antara tanda kutip di bawah ini:
-            GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/GANTI_DENGAN_ID_DEPLOYMENT_ANDA/exec",
+            // 👇 GANTI URL DI BAWAH INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA 👇
+            GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyocaEqK3MjYGdzN1t1DJU1j1NyuEcCFIvkhj8xnuTO61J7T39cQRNiL77RL2oMSK1Y/exec",
 
-            // Informasi Acara yang tampil di Header Atas Formulir:
+            // Informasi Acara Resmi:
             SUBJUDUL_ACARA: "Buku Tamu & Registrasi Peserta",
-            JUDUL_ACARA: "Seminar & Workshop Solusi Instrumen Analitik Laboratorium",
-            VENUE_ACARA: "Grand Ballroom Hotel Mulia Senayan, Jakarta",
-            TANGGAL_ACARA: "Jumat, 16 Oktober 2026"
+            JUDUL_ACARA: "Southeast Asia Section 5th Annual Conference",
+            VENUE_ACARA: "Hotel Borobudur Jakarta, Jakarta, Indonesia",
+            TANGGAL_ACARA: "October 20-21, 2026"
         };
-
-        /**
-         * ============================================================================
-         * 2. KODE BACKEND GOOGLE APPS SCRIPT (UNTUK DITEMPEL DI GOOGLE SPREADSHEET)
-         * ============================================================================
-         * Buka Google Sheet Anda -> klik menu Ekstensi -> Apps Script -> Tempel kode ini:
-         *
-         * function doPost(e) {
-         *   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-         *   if (sheet.getLastRow() === 0) {
-         *     sheet.appendRow([
-         *       "Timestamp", "Judul Acara", "Venue", "Nama", "Perusahaan/Instansi",
-         *       "Kota", "Posisi/Jabatan", "Email", "Nomor Handphone",
-         *       "Rencana Investasi (1 Tahun Ke Depan)"
-         *     ]);
-         *   }
-         *   var data = JSON.parse(e.postData.contents);
-         *   sheet.appendRow([
-         *     data.timestamp || new Date().toLocaleString("id-ID"),
-         *     data.acara || "",
-         *     data.venue || "",
-         *     data.nama || "",
-         *     data.perusahaan || "",
-         *     data.kota || "",
-         *     data.posisi || "",
-         *     data.email || "",
-         *     "'" + (data.hp || ""),
-         *     data.investasi || ""
-         *   ]);
-         *   return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
-         *     .setMimeType(ContentService.MimeType.JSON);
-         * }
-         * ============================================================================
-         */
 
         const INVESTMENT_OPTIONS = [
             "Gas Chromatography (GC)",
@@ -630,6 +598,7 @@
             const entry = {
                 timestamp: timestampStr,
                 acara: CONFIG.JUDUL_ACARA,
+                tanggal_acara: CONFIG.TANGGAL_ACARA,
                 venue: CONFIG.VENUE_ACARA,
                 nama: document.getElementById('inputNama').value.trim(),
                 perusahaan: document.getElementById('inputPerusahaan').value.trim(),
@@ -641,19 +610,32 @@
             };
 
             const isUrlConfigured = CONFIG.GOOGLE_SCRIPT_URL &&
-                !CONFIG.GOOGLE_SCRIPT_URL.includes("GANTI_DENGAN_ID_DEPLOYMENT_ANDA");
+                !CONFIG.GOOGLE_SCRIPT_URL.includes("GANTI_DENGAN_ID_DEPLOYMENT_ANDA") &&
+                CONFIG.GOOGLE_SCRIPT_URL.startsWith("https://script.google.com/");
+
+            let syncSuccess = false;
 
             if (isUrlConfigured) {
                 try {
+                    // Mengirim sebagai Form URL-Encoded & JSON payload agar 100% diterima oleh Google Apps Script tanpa kendala CORS
+                    const formBody = new URLSearchParams();
+                    Object.keys(entry).forEach(key => formBody.append(key, entry[key]));
+                    formBody.append('payload', JSON.stringify(entry));
+
                     await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify(entry)
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                        },
+                        body: formBody.toString()
                     });
+                    syncSuccess = true;
                 } catch (err) {
                     console.error("Gagal mengirim ke Google Spreadsheet:", err);
                 }
+            } else {
+                console.warn("GOOGLE_SCRIPT_URL belum diisi dengan URL Web App Anda.");
             }
 
             submitBtn.disabled = false;
@@ -663,7 +645,16 @@
             document.getElementById('successScreen').classList.remove('hidden');
 
             const syncNote = document.getElementById('syncStatusNote');
-            syncNote.innerHTML = `<i class="fa-solid fa-circle-check"></i> Data registrasi Anda telah terekam di sistem.`;
+            if (syncSuccess) {
+                syncNote.className = "text-xs text-emerald-600 font-medium";
+                syncNote.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Data kehadiran telah tersimpan otomatis ke Google Spreadsheet.`;
+            } else if (!isUrlConfigured) {
+                syncNote.className = "text-xs text-amber-600 font-medium";
+                syncNote.innerHTML = `<i class="fa-solid fa-circle-info"></i> Mode Pratinjau: Masukkan URL Google Apps Script Anda di bagian CONFIG untuk menyimpan ke Spreadsheet.`;
+            } else {
+                syncNote.className = "text-xs text-rose-600 font-medium";
+                syncNote.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Gagal terhubung ke jaringan. Pastikan koneksi internet stabil.`;
+            }
 
             document.getElementById('submissionSummary').innerHTML = `
                 <div class="grid grid-cols-3 gap-1 py-1 border-b border-slate-200/60">
